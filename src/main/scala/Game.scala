@@ -18,6 +18,14 @@ class Game(val fields: Array[Byte],
     fields(33) == 0 || fields(34) == 0
   }
 
+  def hasCurrentPlayerWon: Boolean = {
+    fields(34 - player) == 0
+  }
+
+  def hasCurrentPlayerLost: Boolean = {
+    fields(33 + player) == 0
+  }
+
   def canPlayField(fieldIndex: Int): Boolean = {
     !isGameOver && fields(fieldIndex) >= 2 && fieldIndex / 16 == player
   }

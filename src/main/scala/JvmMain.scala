@@ -1,9 +1,12 @@
 import scala.util.Random
-import scala.collection.parallel.CollectionConverters._
 
-object Main {
+object JvmMain {
 
   def main(args: Array[String]): Unit = {
+
+  }
+
+  private def performanceTest(): Unit = {
     var iterations = 0
     var moveCount = 0
     while(true) {
@@ -31,4 +34,3 @@ object Main {
   }
 
 }
-
