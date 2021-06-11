@@ -7,6 +7,7 @@ class MainViewController() {
   val wrapper: Element = View.createDiv("wrapper")
   val restartButton: Button = View.createButton("Restart")
   val nextButton: Button = View.createButton("Next")
+  val evaluationButton: Button = View.createButton("Eval")
   val computerButton: Button = View.createButton("CPU")
   val gameWrapper: Element = View.createDiv("game-wrapper")
 
@@ -15,20 +16,40 @@ class MainViewController() {
   var moves: Seq[EvaluatedMove] = Nil
 
   var computerEnabled: Boolean = false
+  var evaluationEnabled: Boolean = false
 
   def init(): Unit = {
     dom.document.body.appendChild(wrapper)
     wrapper.appendChild(restartButton)
+    wrapper.appendChild(evaluationButton)
     wrapper.appendChild(computerButton)
     wrapper.appendChild(gameWrapper)
-    wrapper.appendChild(nextButton)
 
     // menu
     restartButton.onclick = { _ => clickRestart() }
     nextButton.onclick = { _ => clickNext() }
+    evaluationButton.onclick = { _ => toggleEvaluation() }
     computerButton.onclick = { _ => toggleComputer() }
 
     renderGame()
+
+    dom.window.setInterval(() => computerPlay(), 1000)
+  }
+
+  private def computerPlay(): Unit = {
+    if (computerEnabled && game.player == 1) {
+      maybeStep match {
+        case Some(_) => clickNext()
+        case _ =>
+          val evalMoves = ComputerPlayer.evaluateMoves(game)
+          evalMoves.maxByOption(_.value).foreach {
+            bestMove =>
+              val computerStep = Step.play(game, bestMove.field)
+              maybeStep = Some(computerStep)
+              updateGame(computerStep.game)
+          }
+      }
+    }
   }
 
   def clickNext(): Unit = {
@@ -57,9 +78,14 @@ class MainViewController() {
     }
   }
 
-
   private def toggleComputer(): Unit ={
     computerEnabled = !computerEnabled
+    moves = Nil
+    renderGame()
+  }
+
+  private def toggleEvaluation(): Unit ={
+    evaluationEnabled = !evaluationEnabled
     moves = Nil
     renderGame()
   }
@@ -81,10 +107,26 @@ class MainViewController() {
       }
     }
 
+    maybeStep.foreach {
+      step =>
+        nextButton.innerHTML = s"Next (${step.taken})"
+        gameWrapper.appendChild(nextButton)
+    }
+
     val summary = View.createDiv("summary")
     summary.innerHTML = s"${game.playerSeedCount(0)} vs ${game.playerSeedCount(1)}"
 
-    nextButton.innerHTML = maybeStep.map(step => s"Next (${step.taken})").mkString
+    if (computerEnabled) {
+      computerButton.style.backgroundColor = "lightgreen"
+    } else {
+      computerButton.style.backgroundColor = "white"
+    }
+
+    if (evaluationEnabled) {
+      evaluationButton.style.backgroundColor = "lightgreen"
+    } else {
+      evaluationButton.style.backgroundColor = "white"
+    }
 
     gameWrapper.appendChild(summary)
   }
@@ -104,7 +146,7 @@ class MainViewController() {
       val fieldButton = View.createButton(fieldValue.toString)
 
       // visualize evaluation
-      if (computerEnabled && maybeStep.isEmpty) {
+      if (evaluationEnabled && maybeStep.isEmpty) {
         if (moves.isEmpty) {
           moves = ComputerPlayer.evaluateMoves(game)
         }
@@ -113,7 +155,7 @@ class MainViewController() {
         val (r, g, b) = (255 - color, color, 0)
         fieldButton.style.backgroundColor = s"rgb($r,$g,$b)"
       } else {
-        fieldButton.style.backgroundColor = s"darkgreen"
+        fieldButton.style.backgroundColor = s"#5a1b82"
       }
 
       fieldButton.onclick = { _ => clickField(field) }
@@ -129,6 +171,10 @@ class MainViewController() {
       }
       fieldElement.appendChild(oneSpan)
       fieldElement.classList.add("noaction")
+
+      if (field / 16 == game.player) {
+        fieldElement.style.backgroundColor = "#230a33"
+      }
     }
 
     if (maybeStep.exists(_.actionField == field)) {
