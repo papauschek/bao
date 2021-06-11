@@ -2,7 +2,7 @@
 
 object ComputerPlayer {
 
-  val MAX_DEPTH: Int = 6
+  val MAX_DEPTH: Int = 5
 
   private val MAX_VALUE = 64
 

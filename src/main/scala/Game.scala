@@ -18,6 +18,10 @@ class Game(val fields: Array[Byte],
     fields(33) == 0 || fields(34) == 0
   }
 
+  def playerSeedCount(player: Int): Int = {
+    fields(32 + player * 2) + fields(33 + player * 2)
+  }
+
   def hasCurrentPlayerWon: Boolean = {
     fields(34 - player) == 0
   }
