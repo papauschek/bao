@@ -52,14 +52,6 @@ class Game(val fields: Array[Byte],
     }
   }
 
-  private def addToField(array: Array[Byte], index: Int, add: Int): Int = {
-    val sumIndex = 32 + index / 8
-    array(sumIndex) = (array(sumIndex) + add).toByte
-    val value = array(index) + add
-    array(index) = value.toByte
-    value
-  }
-
   def playField(fieldIndex: Int): Game = {
     require(fields(fieldIndex) >= 2, "played field needs at least 2 seeds")
     require(fieldIndex / 16 == player, "fieldIndex needs to be within player range")
@@ -74,20 +66,20 @@ class Game(val fields: Array[Byte],
 
       // take the seeds
       var takenCount: Int = currentFieldValue
-      addToField(nextFields, currentField, -currentFieldValue)
+      Game.addToField(nextFields, currentField, -currentFieldValue)
 
       // take opponents seeds
       if (iteration >= 1 && currentFieldValue >= 3 && currentField >= 8 && currentField < 24) {
         val opponentField = currentField % 16 + 8
         val opponentValue = nextFields(opponentField)
         takenCount += opponentValue
-        addToField(nextFields, opponentField, -opponentValue)
+        Game.addToField(nextFields, opponentField, -opponentValue)
       }
 
       // distribute the seeds
       while(takenCount > 0) {
         currentField = Game.nextFieldIndex(currentField)
-        currentFieldValue = addToField(nextFields, currentField, 1)
+        currentFieldValue = Game.addToField(nextFields, currentField, 1)
         takenCount -= 1
       }
 
@@ -141,4 +133,14 @@ object Game {
     game
   }
 
+  def addToField(array: Array[Byte], index: Int, add: Int): Int = {
+    val sumIndex = 32 + index / 8
+    array(sumIndex) = (array(sumIndex) + add).toByte
+    val value = array(index) + add
+    array(index) = value.toByte
+    value
+  }
+
 }
+
+
