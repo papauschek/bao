@@ -10,7 +10,7 @@ case class Step(game: Game, actionField: Int, taken: Int) {
     val nextGame = game.copy()
     val fields = nextGame.fields
     val nextField = Game.nextFieldIndex(actionField)
-    if (taken >= 1) {
+    if (taken >= 1 && !game.isGameOver) {
       val fieldValue = Game.addToField(fields, actionField, 1)
       if (taken == 1 && fieldValue >= 3 && actionField >= 8 && actionField < 24) {
         // take opponents seeds

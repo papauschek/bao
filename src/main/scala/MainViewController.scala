@@ -1,14 +1,16 @@
 import org.scalajs.dom
-import org.scalajs.dom.Element
+import org.scalajs.dom.{Element, window}
 import org.scalajs.dom.html.{Button, Div, Span}
 
 class MainViewController() {
 
   val wrapper: Element = View.createDiv("wrapper")
-  val restartButton: Button = View.createButton("Restart")
-  val nextButton: Button = View.createButton("Next")
-  val evaluationButton: Button = View.createButton("Eval")
-  val computerButton: Button = View.createButton("CPU")
+  val restartButton: Button = View.createButton("Restart", "menu-button")
+  val nextButton: Button = View.createButton("Next", "menu-button")
+  val evaluationButton: Button = View.createButton("Eval", "menu-button")
+  val computerButton: Button = View.createButton("CPU Player", "menu-button")
+  val difficultyButton: Button = View.createButton("CPU Difficulty 1", "menu-button")
+  val speedButton: Button = View.createButton("2x Speed", "menu-button")
   val gameWrapper: Element = View.createDiv("game-wrapper")
 
   var game: Game = Game.initial
@@ -17,12 +19,23 @@ class MainViewController() {
 
   var computerEnabled: Boolean = false
   var evaluationEnabled: Boolean = false
+  var speed: Int = 2
+  var iteration: Int = 0
+  var difficulty = 1
+
+  val isLocal: Boolean = window.location.hostname.isEmpty
 
   def init(): Unit = {
     dom.document.body.appendChild(wrapper)
     wrapper.appendChild(restartButton)
-    wrapper.appendChild(evaluationButton)
+
+    if (isLocal) {
+      wrapper.appendChild(evaluationButton)
+    }
+
     wrapper.appendChild(computerButton)
+    wrapper.appendChild(difficultyButton)
+    wrapper.appendChild(speedButton)
     wrapper.appendChild(gameWrapper)
 
     // menu
@@ -30,24 +43,41 @@ class MainViewController() {
     nextButton.onclick = { _ => clickNext() }
     evaluationButton.onclick = { _ => toggleEvaluation() }
     computerButton.onclick = { _ => toggleComputer() }
+    speedButton.onclick = { _ => toggleSpeed() }
+    difficultyButton.onclick = { _ => toggleDifficulty() }
 
     renderGame()
 
-    dom.window.setInterval(() => computerPlay(), 500)
+    dom.window.setInterval(() => tick(), 200)
+  }
+
+  private def tick(): Unit = {
+
+    iteration += 1
+
+    if (iteration % (4 / speed) == 0) {
+      clickNext()
+      computerPlay()
+    }
+
+  }
+
+  private def evalMoves(): Seq[EvaluatedMove] = {
+    if (moves.isEmpty) {
+      moves = ComputerPlayer.evaluateMoves(game, maxDepth = difficulty - 1)
+    }
+    moves
   }
 
   private def computerPlay(): Unit = {
-    if (computerEnabled && game.player == 1) {
-      maybeStep match {
-        case Some(_) => clickNext()
-        case _ =>
-          val evalMoves = ComputerPlayer.evaluateMoves(game)
-          evalMoves.maxByOption(_.value).foreach {
-            bestMove =>
-              val computerStep = Step.play(game, bestMove.field)
-              maybeStep = Some(computerStep)
-              updateGame(computerStep.game)
-          }
+    if (computerEnabled && game.player == 1 && maybeStep.isEmpty) {
+      if (moves.isEmpty) {
+        evalMoves()
+        iteration = 0
+      } else {
+        moves.maxByOption(_.value).foreach {
+          bestMove => clickField(bestMove.field)
+        }
       }
     }
   }
@@ -67,13 +97,13 @@ class MainViewController() {
   }
 
   private def clickField(field: Int): Unit = {
-    //updateGame(game.playField(field))
     maybeStep match {
       case Some(_) =>
         clickNext()
       case _ =>
         val step = Step.play(game, field)
         maybeStep = Some(step)
+        iteration = 0
         updateGame(step.game)
     }
   }
@@ -83,6 +113,19 @@ class MainViewController() {
     moves = Nil
     renderGame()
   }
+
+  private def toggleSpeed(): Unit ={
+    speed = if (speed <= 2) speed * 2 else 1
+    speedButton.innerHTML = s"${speed}x Speed"
+  }
+
+  private def toggleDifficulty(): Unit ={
+    difficulty = difficulty % 6 + 1
+    difficultyButton.innerHTML = s"CPU Difficulty $difficulty"
+    moves = Nil
+    renderGame()
+  }
+
 
   private def toggleEvaluation(): Unit ={
     evaluationEnabled = !evaluationEnabled
@@ -105,12 +148,6 @@ class MainViewController() {
         val fieldDiv = createField(field)
         lineDiv.appendChild(fieldDiv)
       }
-    }
-
-    maybeStep.foreach {
-      step =>
-        nextButton.innerHTML = s"Next (${step.taken})"
-        gameWrapper.appendChild(nextButton)
     }
 
     val summary = View.createDiv("summary")
@@ -143,14 +180,11 @@ class MainViewController() {
 
     if (showButton) {
 
-      val fieldButton = View.createButton(fieldValue.toString)
+      val fieldButton = View.createButton(fieldValue.toString, "field-button")
 
       // visualize evaluation
       if (evaluationEnabled && maybeStep.isEmpty) {
-        if (moves.isEmpty) {
-          moves = ComputerPlayer.evaluateMoves(game)
-        }
-        val moveValue = moves.find(_.field == field).get.value
+        val moveValue = evalMoves().find(_.field == field).get.value
         val color = (moveValue * 4).min(255)
         val (r, g, b) = (255 - color, color, 0)
         fieldButton.style.backgroundColor = s"rgb($r,$g,$b)"
@@ -177,9 +211,16 @@ class MainViewController() {
       }
     }
 
-    if (maybeStep.exists(_.actionField == field)) {
-      fieldElement.classList.add("active")
+    maybeStep match {
+      case Some(step) if step.actionField == field =>
+        fieldElement.classList.add("active")
+        val hands = View.createDiv("hands")
+        hands.innerHTML = step.taken.toString
+        fieldElement.appendChild(hands)
+
+      case _ =>
     }
+
 
     fieldElement
   }

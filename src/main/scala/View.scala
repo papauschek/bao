@@ -15,10 +15,10 @@ object View {
     element
   }
 
-  def createButton(text: String): Button = {
+  def createButton(text: String, className: String): Button = {
     val element = dom.document.createElement("button").asInstanceOf[Button]
     element.textContent = text
-    element.classList.add("game-button")
+    element.classList.add(className)
     element
   }
 

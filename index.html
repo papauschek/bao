@@ -9,6 +9,11 @@
             background-color: black;
             color: white;
             font-family: Arial, Helvetica, sans-serif;
+            font-size: 120%;
+        }
+
+        .menu-button {
+            margin: 3px;
         }
 
         .game-wrapper {
@@ -21,10 +26,33 @@
 
         .field {
             display: inline-block;
+            position: relative;
             width: 40px;
             height: 40px;
             background-color: #333333;
             border: 2px solid black;
+        }
+
+        .field-button, .field {
+            font-size: 16pt;
+        }
+
+        .field .hands {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            z-index: 1;
+
+            top: -10%;
+            left: -10%;
+
+            line-height: 20px;
+            border-radius: 10px;
+            background-color: rgba(0, 120, 120, 0.5);
+            color: white;
+            text-align: center;
+
+            font-size: 12pt;
         }
 
         .field.noaction {
@@ -37,11 +65,11 @@
 
         .field .number {
             display: inline-block;
-            padding-top: 10px;
+            line-height: 40px;
         }
 
         .field.active {
-            box-shadow: inset 0 0 10px white;
+            box-shadow: inset 0 0 10px rgb(0, 255, 255);
         }
 
         .field button {
@@ -59,7 +87,7 @@
 <body>
 
 <!-- Include Scala.js compiled code -->
-<script type="text/javascript" src="./js/fullOpt.js"></script>
+<!-- <script type="text/javascript" src="./js/fullOpt.js"></script> -->
 <script type="text/javascript" src="./target/scala-2.13/bao-fastopt.js"></script>
 </body>
 </html>

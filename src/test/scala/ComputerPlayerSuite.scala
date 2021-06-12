@@ -17,7 +17,7 @@ class ComputerPlayerSuite extends FunSuite {
     var isGameOver = false
     while (!game.isGameOver && !isGameOver) {
 
-      val moves = ComputerPlayer.evaluateMoves(game)
+      val moves = ComputerPlayer.evaluateMoves(game, maxDepth = ComputerPlayer.MAX_DEPTH)
       moves.maxByOption(_.value) match {
         case Some(bestMove) =>
 
@@ -32,7 +32,7 @@ class ComputerPlayerSuite extends FunSuite {
   }
 
   private def evaluate(game: Game, depth: Int): Int = {
-    ComputerPlayer.evaluate(game, ComputerPlayer.MAX_DEPTH - depth).value
+    ComputerPlayer.evaluate(game, ComputerPlayer.MAX_DEPTH, ComputerPlayer.MAX_DEPTH - depth).value
   }
 
 }

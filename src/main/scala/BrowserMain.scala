@@ -6,6 +6,5 @@ object BrowserMain {
     main.init()
   }
 
-
 }
 
