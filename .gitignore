@@ -38,3 +38,4 @@ shared/.jvm
 .cache
 .target
 bin/
+/.bsp/
