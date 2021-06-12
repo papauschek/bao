@@ -14,3 +14,5 @@ enablePlugins(ScalaJSPlugin)
 scalaJSUseMainModuleInitializer := true
 
 Compile / mainClass := Some("BrowserMain")
+
+Compile / fullOptJS / artifactPath := baseDirectory.value / "js" / "fullOpt.js"

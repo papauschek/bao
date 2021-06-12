@@ -33,7 +33,7 @@ class MainViewController() {
 
     renderGame()
 
-    dom.window.setInterval(() => computerPlay(), 1000)
+    dom.window.setInterval(() => computerPlay(), 500)
   }
 
   private def computerPlay(): Unit = {
